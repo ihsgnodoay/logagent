@@ -12,8 +12,7 @@ var (
 
 func Init(address []string) (err error) {
     config := sarama.NewConfig()
-    // tailf 包使用
-    // 发送完数据需要
+    // tailf 包使用 发送完数据需要
     config.Producer.RequiredAcks = sarama.WaitForAll
     // leader 和 follow都确认，新选出一个partition
     config.Producer.Partitioner = sarama.NewRandomPartitioner
