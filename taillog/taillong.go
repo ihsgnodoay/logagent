@@ -8,7 +8,6 @@ import (
 
 var (
     tailObj *tail.Tail
-    LogChan chan string
 )
 
 func Init(fileName string) (err error) {
