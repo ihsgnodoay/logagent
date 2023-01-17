@@ -32,19 +32,6 @@ var (
 
 func main() {
     // 0. 加载配置文件
-    // cfg, err := ini.Load("./config/config.ini")
-    // if err != nil {
-    //     fmt.Printf("Fail to read file: %v\n", err)
-    //     os.Exit(1)
-    // }
-    // address := cfg.Section("kafka").Key("address").String()
-    // topic := cfg.Section("kafka).Key("address").String()
-    // fileName := cfg.Section("taillog").Key("path").String()
-
-    // fmt.Println("address:", cfg.Section("kafka").Key("address").String())
-    // fmt.Println("topic:", cfg.Section("kafka").Key("topic").String())
-    // fmt.Println("filename:", cfg.Section("taillog").Key("filename").String())
-
     err := ini.MapTo(cfg, "./config/config.ini")
     if err != nil {
         fmt.Printf("Fail to read file: %v\n", err)
@@ -66,6 +53,19 @@ func main() {
         return
     }
     fmt.Println("init etcd success.")
+
+    // 从 etcd 中获取日志收集项的配置信息
+    logEntryConf, err := etcd.GetConf("/etcd_conf")
+    if err != nil {
+        fmt.Printf("etcd.GetCOnf failed, err: %v\n", err)
+        return
+    }
+    fmt.Println("etcd.GetConf success", logEntryConf)
+    for index, value := range logEntryConf {
+        fmt.Printf("index: %v, value: %v\n", index, value)
+    }
+
+    // 派一个哨兵监视日志收集项的变化，有变化及时通知logAgent 实现热加载配置
 
     // 2. 打开日志文件准备收集日志
     // err = taillog.Init(cfg.FileName)
