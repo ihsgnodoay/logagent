@@ -4,8 +4,8 @@ package main
 import (
     "fmt"
     "github.com/dyihs/logagent/config"
+    "github.com/dyihs/logagent/etcd"
     "github.com/dyihs/logagent/kafka"
-    "github.com/dyihs/logagent/taillog"
     "gopkg.in/ini.v1"
     "time"
 )
@@ -17,18 +17,18 @@ var (
     cfg = new(config.AppConf)
 )
 
-func run() {
-    // 1. 读取日志
-    for {
-        select {
-        case line := <-taillog.ReadChan():
-            // 2. 发送到kafka
-            kafka.SendToKafka(cfg.Topic, line.Text)
-        default:
-            time.Sleep(time.Second)
-        }
-    }
-}
+// func run() {
+//     // 1. 读取日志
+//     for {
+//         select {
+//         case line := <-taillog.ReadChan():
+//             // 2. 发送到kafka
+//             kafka.SendToKafka(cfg.Topic, line.Text)
+//         default:
+//             time.Sleep(time.Second)
+//         }
+//     }
+// }
 
 func main() {
     // 0. 加载配置文件
@@ -51,24 +51,28 @@ func main() {
         return
     }
 
-    fmt.Println("address:", cfg.Address)
-    fmt.Println("topic:", cfg.Topic)
-    fmt.Println("filename:", cfg.FileName)
-
     // 1. 初始化kafka连接
-    err = kafka.Init([]string{cfg.Address})
+    err = kafka.Init([]string{cfg.KafkaConf.Address})
     if err != nil {
         fmt.Printf("init kafka failed：err%v\n", err)
         return
     }
     fmt.Println("init kafka success.")
 
-    // 2. 打开日志文件准备收集日志
-    err = taillog.Init(cfg.FileName)
+    // 2. 初始化etcd
+    err = etcd.Init(cfg.EtcdConf.Address, time.Duration(cfg.EtcdConf.Timeout)*time.Second)
     if err != nil {
-        fmt.Printf("init taillog failed,err:%v\n", err)
+        fmt.Printf("init etcd failed：err%v\n", err)
         return
     }
-    fmt.Println("init taillog success.")
-    run()
+    fmt.Println("init etcd success.")
+
+    // 2. 打开日志文件准备收集日志
+    // err = taillog.Init(cfg.FileName)
+    // if err != nil {
+    //     fmt.Printf("init taillog failed,err:%v\n", err)
+    //     return
+    // }
+    // fmt.Println("init taillog success.")
+    // run()
 }
