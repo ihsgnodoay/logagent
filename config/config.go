@@ -1,7 +1,8 @@
 package config
 
 type KafkaConf struct {
-    Address string `ini:"address"`
+    Address     string `ini:"address"`
+    ChanMaxSize int    `ini:"chan_max_size"`
 }
 
 type EtcdConf struct {

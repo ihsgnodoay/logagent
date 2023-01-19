@@ -6,6 +6,7 @@ import (
     "github.com/dyihs/logagent/config"
     "github.com/dyihs/logagent/etcd"
     "github.com/dyihs/logagent/kafka"
+    "github.com/dyihs/logagent/taillog"
     "gopkg.in/ini.v1"
     "time"
 )
@@ -17,19 +18,6 @@ var (
     cfg = new(config.AppConf)
 )
 
-// func run() {
-//     // 1. 读取日志
-//     for {
-//         select {
-//         case line := <-taillog.ReadChan():
-//             // 2. 发送到kafka
-//             kafka.SendToKafka(cfg.Topic, line.Text)
-//         default:
-//             time.Sleep(time.Second)
-//         }
-//     }
-// }
-
 func main() {
     // 0. 加载配置文件
     err := ini.MapTo(cfg, "./config/config.ini")
@@ -39,7 +27,7 @@ func main() {
     }
 
     // 1. 初始化kafka连接
-    err = kafka.Init([]string{cfg.KafkaConf.Address})
+    err = kafka.Init([]string{cfg.KafkaConf.Address}, cfg.KafkaConf.ChanMaxSize)
     if err != nil {
         fmt.Printf("init kafka failed：err%v\n", err)
         return
@@ -65,14 +53,7 @@ func main() {
         fmt.Printf("index: %v, value: %v\n", index, value)
     }
 
-    // 派一个哨兵监视日志收集项的变化，有变化及时通知logAgent 实现热加载配置
+    // 3. 收集日志发往kafka
+    taillog.Init(logEntryConf)
 
-    // 2. 打开日志文件准备收集日志
-    // err = taillog.Init(cfg.FileName)
-    // if err != nil {
-    //     fmt.Printf("init taillog failed,err:%v\n", err)
-    //     return
-    // }
-    // fmt.Println("init taillog success.")
-    // run()
 }
