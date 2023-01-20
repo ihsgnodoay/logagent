@@ -8,12 +8,10 @@ import (
     "github.com/dyihs/logagent/kafka"
     "github.com/dyihs/logagent/taillog"
     "gopkg.in/ini.v1"
+    "sync"
     "time"
 )
 
-// var (
-//     cfg, err = ini.Load("./config/config.ini")
-// )
 var (
     cfg = new(config.AppConf)
 )
@@ -49,11 +47,17 @@ func main() {
         return
     }
     fmt.Println("etcd.GetConf success", logEntryConf)
+
+    // 派一个哨兵监视日志收集项的变化，有变化及时通知logAgent实现热加载配置
     for index, value := range logEntryConf {
         fmt.Printf("index: %v, value: %v\n", index, value)
     }
 
     // 3. 收集日志发往kafka
     taillog.Init(logEntryConf)
-
+    newConfChan := taillog.NewConfChan()
+    var wg sync.WaitGroup
+    wg.Add(1)
+    go etcd.WatchConf("/etcd_conf", newConfChan)
+    wg.Wait()
 }

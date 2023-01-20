@@ -21,7 +21,7 @@ func main() {
 
     ctx, cancel := context.WithTimeout(context.Background(), time.Second)
     value := `[{"path":"/tmp/nginx.log","topic":"web-log"},{"path":"/tmp/redis.log","topic":"redis-log"}]`
-    _, err = cli.Put(ctx, "/etcd_conf", value)
+    _, err = cli.Put(ctx, "/etcd_conf_new", value)
     cancel()
     if err != nil {
         fmt.Printf("put to etcd failed, err:%v\n", err)
