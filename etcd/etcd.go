@@ -62,6 +62,13 @@ func WatchConf(key string, newConfCh chan<- []*LogEntry) {
             fmt.Printf("Type: %v\n key:%v value:%v\n", evt.Type, string(evt.Kv.Value), string(evt.Kv.Value))
             // 通知 taillog.tskMgr
             var newConf []*LogEntry
+            if evt.Type != clientv3.EventTypeDelete {
+                err := json.Unmarshal(evt.Kv.Value, &newConf)
+                if err != nil {
+                    fmt.Printf("unmarshal failed, err:%v\n", err)
+                    continue
+                }
+            }
             err := json.Unmarshal(evt.Kv.Value, &newConf)
             if err != nil {
                 fmt.Printf("unmarshal failed, err:%v\n", err)
